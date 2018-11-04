@@ -45,9 +45,19 @@ public class Server {
 	
 	public void listen() throws IOException
 	{
+		String artist;
 		clientSocket = serverSocket.accept();
 		out = new PrintWriter(clientSocket.getOutputStream(), true);
 		in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+		artist = in.readLine();
+		if (!songs.containsKey(artist))
+		{		
+			out.println("Sorry, this artist is not contained in our records.");
+		}
+		else
+		{
+			out.println(songs.get(artist));
+		}
 	}
 	
 
