@@ -58,6 +58,13 @@ public class Server {
 		{
 			out.println(songs.get(artist));
 		}
+		String quit = "";
+		do
+		{
+			quit = in.readLine();
+		}while(!quit.equalsIgnoreCase("quit"));
+		clientSocket.close();
+		serverSocket.close();
 	}
 	
 
