@@ -1,5 +1,4 @@
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -9,6 +8,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.nio.channels.ClosedChannelException;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Client {
@@ -21,7 +21,7 @@ public class Client {
 	private DateTimeFormatter formatter;
 	private Instant instant;
 	private Instant instant1;
-	private File file;
+	private LocalDateTime datetime;
 
 	public static void main(String[] args) {
 		try 
@@ -50,12 +50,13 @@ public class Client {
 	
 	public Client() throws IOException
 	{
-		file = new File("client.log");
-		writer = new FileWriter(file);
+		writer = new FileWriter("client.log", true);
+		formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 		//Attempt to make a connection to the server on port 22222
 		clientSocket = new Socket("localhost",22222);
-		instant = Instant.now();
-		writer.write("Connection to server established: " + formatter.format(instant));
+		datetime = LocalDateTime.now();
+		writer.append("\r\nConnection to server established: " + formatter.format(datetime));
+		writer.flush();
 		userIn = new BufferedReader(new InputStreamReader(System.in));
 		serverIn = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 		out = new PrintWriter(clientSocket.getOutputStream());
@@ -69,11 +70,14 @@ public class Client {
 		String artist = userIn.readLine();
 		//Send the name to the server
 		out.println(artist);
+		out.flush();
 		instant = Instant.now();
 		//Receive the list of songs from the server
 		String songs = serverIn.readLine();
 		instant1 = Instant.now();
-		writer.write("\nServer response received: " + formatter.format(instant1) + "\nResponse length: " + songs.getBytes().length + " bytes\nResponse time: " + (instant1.toEpochMilli()-instant.toEpochMilli()) + " ms");
+		datetime = LocalDateTime.now();
+		writer.append("\r\nServer response received: " + formatter.format(datetime) + "\r\nResponse length: " + songs.getBytes().length + " bytes\r\nResponse time: " + (instant1.toEpochMilli()-instant.toEpochMilli()) + " ms");
+		writer.flush();
 		//Print the list of songs to the user
 		System.out.println(songs);
 		String quit = "";
@@ -85,9 +89,8 @@ public class Client {
 		}while(!quit.equalsIgnoreCase("quit"));
 		//Send the message to the server
 		out.println(quit);
-		if (clientSocket.isClosed())
-		{
-			System.out.println("Connection terminated.");
-		}
+		out.flush();
+		clientSocket.close();
+		System.out.println("Connection terminated.");
 	}
 }
